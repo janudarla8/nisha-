@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Complaint Management System</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    .container { max-width: 700px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; }
+    input, textarea, button { width: 100%; margin: 8px 0; padding: 8px; }
+    button { background: green; color: #fff; border: none; cursor: pointer; }
+    button:hover { opacity: 0.9; }
+    table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #007bff; color: white; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Complaint Management System</h2>
+
+    <label>Name</label>
+    <input type="text" id="name" placeholder="Enter your name">
+
+    <label>Complaint</label>
+    <textarea id="complaint" rows="3" placeholder="Enter your complaint"></textarea>
+
+    <button id="submitBtn">Submit Complaint</button>
+    <button id="clearBtn">Clear All</button>
+
+    <h3>All Complaints</h3>
+    <table>
+      <thead>
+        <tr><th>S.No</th><th>Name</th><th>Complaint</th></tr>
+      </thead>
+      <tbody id="complaintBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const submitBtn = document.getElementById('submitBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const tbody = document.getElementById('complaintBody');
+
+    // Load complaints on page load
+    window.onload = loadComplaints;
+
+    submitBtn.addEventListener('click', () => {
+      const name = document.getElementById('name').value.trim();
+      const complaint = document.getElementById('complaint').value.trim();
+
+      if(!name || !complaint){
+        alert('Please enter both name and complaint!');
+        return;
+      }
+
+      let complaints = [];
+      try {
+        complaints = JSON.parse(localStorage.getItem('complaints')) || [];
+      } catch(err){
+        console.error('Error reading storage:', err);
+      }
+
+      complaints.push({name, complaint});
+
+      try {
+        localStorage.setItem('complaints', JSON.stringify(complaints));
+      } catch(err){
+        console.error('Error saving to storage:', err);
+        alert('Could not save complaint. Check browser settings.');
+        return;
+      }
+
+      // Clear inputs
+      document.getElementById('name').value = '';
+      document.getElementById('complaint').value = '';
+
+      loadComplaints();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if(confirm('Are you sure you want to delete all complaints?')){
+        localStorage.removeItem('complaints');
+        loadComplaints();
+      }
+    });
+
+    function loadComplaints(){
+      tbody.innerHTML = '';
+      let complaints = [];
+      try {
+        complaints = JSON.parse(localStorage.getItem('complaints')) || [];
+      } catch(err){
+        console.error('Error reading storage:', err);
+      }
+
+      if(complaints.length === 0){
+        const tr = document.createElement('tr');
+        const td = document.createElement('td');
+        td.setAttribute('colspan', '3');
+        td.style.textAlign = 'center';
+        td.textContent = 'No complaints yet.';
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      complaints.forEach((c, i) => {
+        const tr = document.createElement('tr');
+
+        const snoTd = document.createElement('td');
+        snoTd.textContent = i + 1;
+
+        const nameTd = document.createElement('td');
+        nameTd.textContent = c.name;
+
+        const complaintTd = document.createElement('td');
+        complaintTd.textContent = c.complaint;
+
+        tr.appendChild(snoTd);
+        tr.appendChild(nameTd);
+        tr.appendChild(complaintTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>
